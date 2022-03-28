@@ -6,6 +6,8 @@ const schedule = require('node-schedule');
 const mysql = require('mysql')
 const { v4: uuidv4 } = require('uuid');
 app.use(bodyParser.json());
+const cors = require('cors');
+app.use(cors());
 // 连接数据库
 const connection = mysql.createConnection({
   host: 'localhost',
