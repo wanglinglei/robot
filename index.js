@@ -20,7 +20,8 @@ connection.connect(() => {
 
 });
 // 本地数据
-const hookUrrl = `https://oapi.dingtalk.com/robot/send?access_token=e2711e5a9e64104f1ef0ab09fad0e923efa45335487f5f80caea6953ebfeff6f`
+const hookUrrl = `https://oapi.dingtalk.com/robot/send?access_token=e2711e5a9e64104f1ef0ab09fad0e923efa45335487f5f80caea6953ebfeff6f`;
+// const hookUrrl = 'https://oapi.dingtalk.com/robot/send?access_token=9b943786c51eeeebc637eb438de9ba35311f6a4ea9e95387680e10a14805594b'
 let voteResult = [];
 app.use(bodyParser.json());
 
@@ -52,7 +53,6 @@ app.get("/createpoststable", (req, res) => {
 //  投票接口
 app.get('/robot/vote', (req, res) => {
   const { vote, id } = req.query;
-  console.log(voteResult, req.query);
   const voteIndex = voteResult.findIndex((item) => {
     return item.name === vote
   })
@@ -188,7 +188,6 @@ function statisticVote () {
     })
     // 找到最后一个和一一组数据相同项
     const firstRes = voteResult[0];
-    console.log(firstRes, 'firstRes');
     let firstDiffIndex;
     for (let index = 0; index < voteResult.length; index++) {
       if (!firstDiffIndex) {
@@ -196,7 +195,6 @@ function statisticVote () {
           firstDiffIndex = index
         }
       }
-
 
     }
     let voteRes = {};
@@ -219,14 +217,14 @@ function statisticVote () {
 
 // 每个工作日 10点半 推送投票消息
 function createVoteMsg () {
-  schedule.scheduleJob('0 15 10 * * 1-5', () => {
+  schedule.scheduleJob('0 20 10 * * 1-5', () => {
     //查询店铺列表
-    voteResult = []
     connection.query('SELECT * FROM shop order by sort ', (err, dbRes) => {
-      const waitSelectList = dbRes.splice(0, 6)
+      const waitSelectList = dbRes.slice(0, 6)
       const allLength = waitSelectList.length;
       let selectIndexList = [];
       let selectList = [];
+      voteResult = [];
       if (4 < allLength) {
         for (let index = 0; index < 4; index++) {
           let creatIndex = Math.floor(Math.random() * allLength);
@@ -253,7 +251,7 @@ function createVoteMsg () {
       const msgList = selectList.map((item) => {
         return {
           title: item.name,
-          actionURL: `http://101.201.118.109:8083/robot/vote?vote=${item}&id=${item.id}`
+          actionURL: `http://101.201.118.109:8083/robot/vote?vote=${item.name}&id=${item.id}`
         }
       })
       const resData = {
@@ -276,7 +274,6 @@ function createVoteMsg () {
         request.post(hookUrrl, options, function (error, response, body) {
         });
       } catch (error) {
-        console.log(error);
       }
     })
   });
@@ -286,7 +283,7 @@ function createVoteMsg () {
 // 12点推送投票结果
 function pushVoteResult () {
   //每分钟的第30秒定时执行一次:
-  schedule.scheduleJob('0 0 12 * * 1-5', () => {
+  schedule.scheduleJob('30 50 11 * * 1-5', () => {
 
     const msg = statisticVote();
     const resData = {
